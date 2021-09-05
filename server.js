@@ -269,3 +269,91 @@ const addDept = () => {
     });
   });
 };
+
+const removeEmployee = () => {
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "employee",
+      message: "Select employee to be deleted:",
+      choices: () => {
+        let employeeArr = [];
+        return new Promise((resolve, reject) => {
+          connection.query(`SELECT CONCAT(first_name, " ", last_name) as name, id FROM employee`, (err, res) => {
+            if (err) throw err;
+            res.forEach((emp) => {
+              employeeArr.push({name: emp.name, value: emp.id});
+            });
+            resolve(employeeArr);
+          });
+        });
+      }
+    }
+  ]).then((ans) => {
+      connection.query(`DELETE FROM employee WHERE id = ${ans.employee};`,
+      (err, res) => {
+        if (err) throw err;
+        console.log("Employee deleted.")
+        startPrompt();
+      });
+  });
+};
+
+const removeRole = () => {
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "role",
+      message: "Select role to delete:",
+      choices: () => {
+        let roleArr = [];
+        return new Promise((resolve, reject) => {
+          connection.query(`SELECT title, id FROM role`, (err, res) => {
+            if (err) throw err;
+            res.forEach((role) => {
+              roleArr.push({name: role.title, value: role.id});
+            });
+            resolve(roleArr);
+          });
+        });
+      }
+    }
+  ]).then((ans) => {
+    connection.query(`DELETE FROM role WHERE id = ${ans.role};`,
+      (err, res) => {
+        if (err) throw err;
+        console.log("Role deleted.")
+        startPrompt();
+      });
+  });
+};
+
+const removeDept = () => {
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "department",
+      message: "Select a department to be deleted:",
+      choices: () => {
+        let deptArr = [];
+        return new Promise((resolve, reject) => {
+          connection.query(`SELECT name, id FROM department`, (err, res) => {
+            if (err) throw err;
+            res.forEach((dept) => {
+              deptArr.push({name: dept.name, value: dept.id});
+            });
+            resolve(deptArr);
+          });
+        });
+      }
+    }
+  ]).then((ans) => {
+      connection.query(`DELETE FROM department WHERE id = ${ans.department};`,
+      (err, res) => {
+        if (err) throw err;
+        console.log("Department deleted.")
+        startPrompt();
+      });
+  });
+};
+
