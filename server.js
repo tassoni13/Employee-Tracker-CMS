@@ -80,3 +80,44 @@ const startPrompt = () => {
       }
   })
 };
+
+const getEmployees = () => {
+  const query =
+    `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary
+    CONCAT(manager.first_name, " ", manager.last_name) AS manager
+    FROM employee
+    LEFT JOIN role on role.id = employee.role_id
+    LEFT JOIN department on department.id = role.depertment_id
+    LEFT JOIN employee AS manager on manager.id = employee.manager_id`;
+
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    startPrompt();
+  })
+};
+
+const getRoles = () => {
+  const query = 
+  `SELECT role.id, role.title AS role, department.name AS department, role.salary
+   FROM role
+   LEFT JOIN department on role.department_id = department.id`;
+
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    startPrompt();
+  })
+};
+
+const getDept = () => {
+  const query = 
+  `SELECT id, name AS department FROM department`;
+
+  connection.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    startPrompt();
+  })
+};
+
