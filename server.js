@@ -1,6 +1,7 @@
 //Dependencies
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const dotenv = require('dotenv');
 
 require('dotenv').config();
 
@@ -15,6 +16,7 @@ const connection = mysql.createConnection({
 connection.connect((err) => {
   if (err) throw err;
   console.log(`connected as id ${connection.threadId}`);
+  startPrompt();
 });
 
 const startPrompt = () => {
@@ -31,7 +33,7 @@ const startPrompt = () => {
         "Add role",
         "Remove role",
         "View all departments",
-        "Add depertment",
+        "Add department",
         "Remove department",
         "Update employee's manager",
         "View employees by manager",
@@ -69,7 +71,7 @@ const startPrompt = () => {
           removeDept();
           break;
         case "Update employee's manager":
-          undateManager();
+          updateManager();
           break;
         case "View employees by manager":
           getByManager();
@@ -83,11 +85,11 @@ const startPrompt = () => {
 
 const getEmployees = () => {
   const query =
-    `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary
+    `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary,
     CONCAT(manager.first_name, " ", manager.last_name) AS manager
     FROM employee
     LEFT JOIN role on role.id = employee.role_id
-    LEFT JOIN department on department.id = role.depertment_id
+    LEFT JOIN department on department.id = role.department_id
     LEFT JOIN employee AS manager on manager.id = employee.manager_id`;
 
   connection.query(query, (err, res) => {
@@ -183,9 +185,10 @@ const addEmployee = () => {
     },
   ]).then((ans) => {
       connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-        VALUES ('${answers.firstName}', '${answers.lastName}', ${answers.role}, ${answers.manager});`,
+        VALUES ('${ans.firstName}', '${ans.lastName}', ${ans.role}, ${ans.manager});`,
         (err, res) => {
           if (err) throw err;
+          console.log("Employee added.");
           startPrompt();
     });
   });
@@ -240,6 +243,7 @@ const addRole = () => {
       VALUES ('${ans.title}', '${ans.salary}', ${ans.department});`,
       (err, res) => {
         if (err) throw err;
+        console.log("Role added.");
         startPrompt();
       }
     );
@@ -265,6 +269,7 @@ const addDept = () => {
     VALUES ('${ans.name}');`,
     (err, res) => {
       if (err) throw err;
+      console.log("Department added.");
       startPrompt();
     });
   });
@@ -380,7 +385,7 @@ const updateManager = () => {
       type: "list",
       name: "manager",
       message: "Select employee manager:",
-      choices: () => {
+      choices: (ans) => {
         let managerArr = [{name: "None", value: null}];
         return new Promise ((resolve, reject) => {
           connection.query(`SELECT CONCAT(first_name, " ", last_name) as name, id FROM employee WHERE id NOT IN(${ans.employee})`, (err, res) => {
