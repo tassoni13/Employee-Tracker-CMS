@@ -402,3 +402,42 @@ const updateManager = () => {
       });
   });
 };
+
+const getByManager = () => {
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "manager",
+      message: "Select manager:",
+      choices: () => {
+        let employeeArr = [];
+        return new Promise((resolve, reject) => {
+          connection.query(`SELECT CONCAT(first_name, " ", last_name) as name, id FROM employee`, (err, res) => {
+            if (err) throw err;
+            res.forEach((emp) => {
+              employeeArr.push({name: emp.name, value: emp.id});
+            });
+            resolve(employeeArr);
+          });
+        });
+      }
+    }
+  ]).then((ans) => {
+      const query = 
+      `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS name, role.title, department.name AS department, role.salary
+      FROM employee
+      LEFT JOIN role on role.id = employee.role_id
+      LEFT JOIN department on department.id = role.department_id
+      WHERE manager_id = ${ans.manager}`;
+
+    connection.query(query, (err, res) => {
+      if (err) throw err;
+      if (res.length == 0) {
+        console.log("This employee is not a manager");
+      } else {
+        console.table(res);
+      }
+      startPrompt();
+    });
+  });
+};
